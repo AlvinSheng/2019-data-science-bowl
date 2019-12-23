@@ -7,20 +7,22 @@ library(dplyr)
 library(jsonlite)
 library(data.table)
 library(drake)
+library(tidyverse)
 
 # This sets the working directory to that of this file main.R 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
 getwd()
 
 # make sure the folder of data "data-science-bowl-2019" downloaded from Kaggle is in the same directory as this file
 
-train <- read.csv('data-science-bowl-2019/train.csv')
-test <- read.csv('data-science-bowl-2019/test.csv')
+train <- read_csv('data-science-bowl-2019/train.csv')
+test <- read_csv('data-science-bowl-2019/test.csv')
 
-train_labels <- read.csv('data-science-bowl-2019/train_labels.csv')
+train_labels <- read_csv('data-science-bowl-2019/train_labels.csv')
 
-specs <- read.csv('data-science-bowl-2019/specs.csv')
-sample_submission <- read.csv('data-science-bowl-2019/sample_submission.csv')
+specs <- read_csv('data-science-bowl-2019/specs.csv')
+sample_submission <- read_csv('data-science-bowl-2019/sample_submission.csv')
 
 # # Reading in all the files
 # data_folder <- "data-science-bowl-2019"
@@ -29,7 +31,7 @@ sample_submission <- read.csv('data-science-bowl-2019/sample_submission.csv')
 # 
 # data_names <- data_files %>% basename() %>% file_path_sans_ext()
 # 
-# dat <- lapply(data_files, read.csv)
+# dat <- lapply(data_files, read_csv)
 # 
 # names(dat) <- data_names
 # 
