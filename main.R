@@ -64,7 +64,13 @@ train_with_assess <- train %>%
 
 
 
+# Downsampling train_with_assess 
 
+set.seed(1004)
+
+row_idx <- sample(1:dim(train_with_assess)[1], size = 1000, replace = FALSE)
+
+train_sub <- train[row_idx,]
 
 
 
