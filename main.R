@@ -74,6 +74,17 @@ train_sub <- train[row_idx,]
 
 
 
+# make new column, with TRUE if "correct":true, FALSE if "correct":false, NA otherwise
+
+event_data <- train_with_assess$event_data
+
+correct <- ifelse(grepl("\"correct\"", event_data), ifelse(grepl("\"correct\":true", event_data), TRUE, FALSE), NA)
+
+train_with_assess$correct <- correct
+
+
+
+
 
 
 

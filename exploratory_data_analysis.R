@@ -43,6 +43,28 @@ length(unique(test$event_code))
 # table of event_code's
 table(train$event_code)
 
+# how many "\"correct\"" assessments are there?
+sum(grepl("\"correct\"", train_with_assess$event_data)) # 621068
+
+# how many of them are actually correct?
+sum(grepl("\"correct\":true", train_with_assess$event_data)) # 389376
+
+# how many of them are actually incorrect?
+sum(grepl("\"correct\":false", train_with_assess$event_data)) # 231692
+
+# Do "\"correct\"" only appear with assessments? No, they also appear in Game as well!
+
+
+
+# summary of how many attempts every unique combination of game_session and installation_id had on assessments
+attempt_summary <- train_with_assess %>% filter(type == "Assessment") %>% group_by(game_session, installation_id) %>% 
+  summarise(num_attempt = sum((title != "Bird Measurer (Assessment)" & event_code == "4100") | (title == "Bird Measurer (Assessment)" & event_code == "4110")))
+
+# How many unique combinations of game_session and installation_id made at least one attempt on the assessment?
+sum(attempt_summary$num_attempt != 0) # 17690
+
+# This matches the number of rows in train_labels!
+
 
 
 # Exploring test
@@ -77,8 +99,7 @@ for (i in 1:dim(test)[1]) {
 
 # Is there a more efficient way to do the above?
 
-#Felix Wu
-#alvin sheng
+
 
 
 
