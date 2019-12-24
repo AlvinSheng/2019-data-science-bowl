@@ -22,13 +22,13 @@ getwd()
 
 # make sure the folder of data "data-science-bowl-2019" downloaded from Kaggle is in the same directory as this file
 
-train <- data.frame(read_csv('data-science-bowl-2019/train.csv'))
-test <- data.frame(read_csv('data-science-bowl-2019/test.csv'))
+train <- read_csv('data-science-bowl-2019/train.csv')
+test <- read_csv('data-science-bowl-2019/test.csv')
 
-train_labels <- data.frame(read_csv('data-science-bowl-2019/train_labels.csv'))
+train_labels <- read_csv('data-science-bowl-2019/train_labels.csv')
 
-specs <- data.frame(read_csv('data-science-bowl-2019/specs.csv'))
-sample_submission <- data.frame(read_csv('data-science-bowl-2019/sample_submission.csv'))
+specs <- read_csv('data-science-bowl-2019/specs.csv')
+sample_submission <- read_csv('data-science-bowl-2019/sample_submission.csv')
 
 # # Reading in all the files
 # data_folder <- "data-science-bowl-2019"
@@ -62,20 +62,6 @@ train_with_assess <- train %>%
   distinct(installation_id) %>%
   left_join(train, by = "installation_id")
 
-
-
-# convert event_data JSON column to data.table
-
-train_event_data <- train_with_assess$event_data %>% head(22) %>%
-  lapply(function(x) fromJSON(gsub('""', "\"", x))) %>%
-  rbindlist( fill =TRUE)
-
-#only if need to iinteractively change the data table.
-# train_event_data %>% head %>% DT::datatable()
-# map(train_event_data, c( "event_code")) %>% DT::datatable() 
-# specs_arguments <- specs$args %>%
-#   lapply(function(x) fromJSON(gsub('""', "\"", x))) %>%
-#   rbindlist( fill =TRUE)
 
 
 
