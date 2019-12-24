@@ -8,6 +8,9 @@ library(jsonlite)
 library(data.table)
 library(drake)
 library(tidyverse)
+library(conflicted)
+
+conflict_prefer("filter", winner = "dplyr", losers = "stats")
 
 # This sets the working directory to that of this file main.R 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
@@ -47,11 +50,20 @@ sample_submission <- read_csv('data-science-bowl-2019/sample_submission.csv')
 
 
 
+### Data Wrangling ###
 
-#######
+# keep only the installation_id's in train with assessment history
 
-## convert event_data JSON column to data.table
-train_event_data <- train$event_data %>%
+train_with_assess <- train %>% 
+  filter(type == "Assessment") %>% 
+  distinct(installation_id) %>%
+  left_join(train, by = "installation_id")
+
+
+
+# convert event_data JSON column to data.table
+
+train_event_data <- train_with_assess$event_data %>% head(22) %>%
   lapply(function(x) fromJSON(gsub('""', "\"", x))) %>%
   rbindlist( fill =TRUE)
 
