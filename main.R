@@ -1,32 +1,72 @@
 
+# you may need to install.packages("pkg_name") first
+
 library(rstudioapi)
 library(tools)
 library(dplyr)
-
+library(jsonlite)
+library(data.table)
+library(drake)
+library(tidyverse)
+library(shiny)
+library(purrr)
 # This sets the working directory to that of this file main.R 
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
+getwd()
 
-# Reading in all the files
-data_folder <- "data-science-bowl-2019"
+# make sure the folder of data "data-science-bowl-2019" downloaded from Kaggle is in the same directory as this file
 
-data_files <- list_files_with_exts(data_folder, "csv")
+train <- data.frame(read_csv('data-science-bowl-2019/train.csv'))
+test <- data.frame(read_csv('data-science-bowl-2019/test.csv'))
 
-data_names <- data_files %>% basename() %>% file_path_sans_ext()
+train_labels <- data.frame(read_csv('data-science-bowl-2019/train_labels.csv'))
 
-dat <- lapply(data_files, read.csv)
+specs <- data.frame(read_csv('data-science-bowl-2019/specs.csv'))
+sample_submission <- data.frame(read_csv('data-science-bowl-2019/sample_submission.csv'))
 
-names(dat) <- data_names
+# # Reading in all the files
+# data_folder <- "data-science-bowl-2019"
+# 
+# data_files <- list_files_with_exts(data_folder, "csv")
+# 
+# data_names <- data_files %>% basename() %>% file_path_sans_ext()
+# 
+# dat <- lapply(data_files, read_csv)
+# 
+# names(dat) <- data_names
+# 
+# 
+# 
+# # Extracting the required datasets
+# train <- dat$train
+# test <- dat$test
+# 
+# sample_submission <- dat$sample_submission
+# specs <- dat$specs
+# train_labels <- dat$train_labels
 
 
 
-# Extracting the required datasets
-train <- dat$train
-test <- dat$test
 
-sample_submission <- dat$sample_submission
-specs <- dat$specs
-train_labels <- dat$train_labels
+#######
+
+## convert event_data JSON column to data.table
+train_with_assess <- train %>% head(5000) %>%
+  filter(type == 'Assessment') %>% 
+  distinct(installation_id) %>% 
+  left_join(train, by = 'installation_id')
+
+train_event_data <- train_with_assess$event_data %>% head(22) %>%
+  lapply(function(x) fromJSON(gsub('""', "\"", x))) %>%
+  rbindlist( fill =TRUE)
+
+#only if need to iinteractively change the data table.
+# train_event_data %>% head %>% DT::datatable()
+# map(train_event_data, c( "event_code")) %>% DT::datatable() 
+# specs_arguments <- specs$args %>%
+#   lapply(function(x) fromJSON(gsub('""', "\"", x))) %>%
+#   rbindlist( fill =TRUE)
 
 
 
