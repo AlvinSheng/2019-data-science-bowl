@@ -8,6 +8,9 @@ library(jsonlite)
 library(data.table)
 library(drake)
 library(tidyverse)
+library(shiny)
+library(purrr)
+
 library(conflicted)
 
 conflict_prefer("filter", winner = "dplyr", losers = "stats")
@@ -19,13 +22,13 @@ getwd()
 
 # make sure the folder of data "data-science-bowl-2019" downloaded from Kaggle is in the same directory as this file
 
-train <- read_csv('data-science-bowl-2019/train.csv')
-test <- read_csv('data-science-bowl-2019/test.csv')
+train <- data.frame(read_csv('data-science-bowl-2019/train.csv'))
+test <- data.frame(read_csv('data-science-bowl-2019/test.csv'))
 
-train_labels <- read_csv('data-science-bowl-2019/train_labels.csv')
+train_labels <- data.frame(read_csv('data-science-bowl-2019/train_labels.csv'))
 
-specs <- read_csv('data-science-bowl-2019/specs.csv')
-sample_submission <- read_csv('data-science-bowl-2019/sample_submission.csv')
+specs <- data.frame(read_csv('data-science-bowl-2019/specs.csv'))
+sample_submission <- data.frame(read_csv('data-science-bowl-2019/sample_submission.csv'))
 
 # # Reading in all the files
 # data_folder <- "data-science-bowl-2019"
@@ -67,7 +70,13 @@ train_event_data <- train_with_assess$event_data %>% head(22) %>%
   lapply(function(x) fromJSON(gsub('""', "\"", x))) %>%
   rbindlist( fill =TRUE)
 
-train_event_data %>% head %>% DT::datatable()
+#only if need to iinteractively change the data table.
+# train_event_data %>% head %>% DT::datatable()
+# map(train_event_data, c( "event_code")) %>% DT::datatable() 
+# specs_arguments <- specs$args %>%
+#   lapply(function(x) fromJSON(gsub('""', "\"", x))) %>%
+#   rbindlist( fill =TRUE)
+
 
 
 
