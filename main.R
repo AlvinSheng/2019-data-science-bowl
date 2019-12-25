@@ -84,9 +84,38 @@ train_with_assess$correct <- correct
 
 
 
+## Preparing test for prediction.
+
+# Finding the rows of assessments that we need to predict for
+
+pred_assess_idx <- rep(NA, dim(test)[1])
+
+for (i in 1:dim(test)[1]) {
+  
+  if (test$type[i] == "Assessment") {
+    if (i == dim(test)[1]) {
+      pred_assess_idx[i] <- TRUE
+    }
+    else if (test$installation_id[i] != test$installation_id[i+1]) {
+      pred_assess_idx[i] <- TRUE
+    }
+    else {
+      pred_assess_idx[i] <- FALSE
+    }
+  }
+  else {
+    pred_assess_idx[i] <- FALSE
+  }
+  
+}
+
+test_no_labels <- test[pred_assess_idx,]
 
 
 
+# Enhancing train_labels
+
+# First step is to align train_labels and test_no_labels
 
 
 

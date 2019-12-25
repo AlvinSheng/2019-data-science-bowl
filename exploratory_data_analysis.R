@@ -65,6 +65,12 @@ sum(attempt_summary$num_attempt != 0) # 17690
 
 # This matches the number of rows in train_labels!
 
+# Are there cases where Bird Measurer uses event code 4100 and/or other assessments use event code 4110?
+attempt_summary <- train_with_assess %>% filter(type == "Assessment") %>% group_by(game_session, installation_id) %>% 
+  summarise(num_attempt = sum(event_code == "4100" | event_code == "4110"))
+
+# Yes, there are actually 2 such cases with attempts. Gotta be careful here
+sum(attempt_summary$num_attempt != 0) # 17692
 
 
 # Exploring test
@@ -75,27 +81,8 @@ dim(test)
 # there are 1000 unique installation_id's. How many assessments are in the data set?
 sum(test$type == "Assessment") # 102627
 
-# how do we find the rows of the assessments that we need to predict for?
-pred_assess_idx <- rep(NA, dim(test)[1])
-
-for (i in 1:dim(test)[1]) {
-  
-  if (test$type[i] == "Assessment") {
-    if (i == dim(test)[1]) {
-      pred_assess_idx[i] <- TRUE
-      }
-    else if (test$installation_id[i] != test$installation_id[i+1]) {
-      pred_assess_idx[i] <- TRUE
-    }
-    else {
-      pred_assess_idx[i] <- FALSE
-    }
-  }
-  else {
-    pred_assess_idx[i] <- FALSE
-  }
-  
-}
+# how do we find the rows of assessments that we need to predict for?
+# see main.R 
 
 # Is there a more efficient way to do the above?
 
