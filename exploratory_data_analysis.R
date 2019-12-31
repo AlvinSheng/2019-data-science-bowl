@@ -43,6 +43,34 @@ length(unique(test$event_code))
 # table of event_code's
 table(train$event_code)
 
+# how many "\"correct\"" assessments are there?
+sum(grepl("\"correct\"", train_with_assess$event_data)) # 621068
+
+# how many of them are actually correct?
+sum(grepl("\"correct\":true", train_with_assess$event_data)) # 389376
+
+# how many of them are actually incorrect?
+sum(grepl("\"correct\":false", train_with_assess$event_data)) # 231692
+
+# Do "\"correct\"" only appear with assessments? No, they also appear in Game as well!
+
+
+
+# summary of how many attempts every unique combination of game_session and installation_id had on assessments
+attempt_summary <- train_with_assess %>% filter(type == "Assessment") %>% group_by(game_session, installation_id) %>% 
+  summarise(num_attempt = sum((title != "Bird Measurer (Assessment)" & event_code == "4100") | (title == "Bird Measurer (Assessment)" & event_code == "4110")))
+
+# How many unique combinations of game_session and installation_id made at least one attempt on the assessment?
+sum(attempt_summary$num_attempt != 0) # 17690
+
+# This matches the number of rows in train_labels!
+
+# Are there cases where Bird Measurer uses event code 4100 and/or other assessments use event code 4110?
+attempt_summary <- train_with_assess %>% filter(type == "Assessment") %>% group_by(game_session, installation_id) %>% 
+  summarise(num_attempt = sum(event_code == "4100" | event_code == "4110"))
+
+# Yes, there are actually 2 such cases with attempts. Gotta be careful here
+sum(attempt_summary$num_attempt != 0) # 17692
 
 
 # Exploring test
@@ -53,32 +81,12 @@ dim(test)
 # there are 1000 unique installation_id's. How many assessments are in the data set?
 sum(test$type == "Assessment") # 102627
 
-# how do we find the rows of the assessments that we need to predict for?
-pred_assess_idx <- rep(NA, dim(test)[1])
-
-for (i in 1:dim(test)[1]) {
-  
-  if (test$type[i] == "Assessment") {
-    if (i == dim(test)[1]) {
-      pred_assess_idx[i] <- TRUE
-      }
-    else if (test$installation_id[i] != test$installation_id[i+1]) {
-      pred_assess_idx[i] <- TRUE
-    }
-    else {
-      pred_assess_idx[i] <- FALSE
-    }
-  }
-  else {
-    pred_assess_idx[i] <- FALSE
-  }
-  
-}
+# how do we find the rows of assessments that we need to predict for?
+# see main.R 
 
 # Is there a more efficient way to do the above?
 
-#Felix Wu
-#alvin sheng
+
 
 
 
