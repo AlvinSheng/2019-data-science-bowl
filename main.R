@@ -21,41 +21,19 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 getwd()
 
-# set plotting theme baseline
-theme_set(theme_minimal() +
-            theme(axis.title.x = element_text(size = 15, hjust = 1),
-                  axis.title.y = element_text(size = 15),
-                  axis.text.x = element_text(size = 12),
-                  axis.text.y = element_text(size = 12),
-                  panel.grid.major = element_line(linetype = 2),
-                  panel.grid.minor = element_line(linetype = 2),
-                  plot.title = element_text(size = 18, colour = "grey25", face = "bold"), plot.subtitle = element_text(size = 16, colour = "grey44")))
-
-col_pal <- c("#5EB296", "#4E9EBA", "#F29239", "#C2CE46", "#FF7A7F", "#4D4D4D")
-
-
 
 
 # make sure the folder of data "data-science-bowl-2019" downloaded from Kaggle is in the same directory as this file
 
 
-train <- data.frame(read_csv('train.csv'))
-test <- data.frame(read_csv('test.csv'))
 
-train_labels <- data.frame(read_csv('train_labels.csv'))
+train <- read_csv('data-science-bowl-2019/train.csv')
+test <- read_csv('data-science-bowl-2019/test.csv')
 
-specs <- data.frame(read_csv('specs.csv'))
-sample_submission <- data.frame(read_csv('sample_submission.csv'))
+train_labels <- read_csv('data-science-bowl-2019/train_labels.csv')
 
-
-
-# train <- read_csv('data-science-bowl-2019/train.csv')
-# test <- read_csv('data-science-bowl-2019/test.csv')
-
-# train_labels <- read_csv('data-science-bowl-2019/train_labels.csv')
-
-# specs <- read_csv('data-science-bowl-2019/specs.csv')
-# sample_submission <- read_csv('data-science-bowl-2019/sample_submission.csv')
+specs <- read_csv('data-science-bowl-2019/specs.csv')
+sample_submission <- read_csv('data-science-bowl-2019/sample_submission.csv')
 
 
 
@@ -65,7 +43,7 @@ sample_submission <- data.frame(read_csv('sample_submission.csv'))
 
 # keep only the installation_id's in train with assessment history
 
-train_with_assess <- train %>% 
+train <- train %>% 
   filter(type == "Assessment") %>% 
   distinct(installation_id) %>%
   left_join(train, by = "installation_id")
@@ -81,11 +59,6 @@ row_idx <- sample(1:dim(train_with_assess)[1], size = 1000, replace = FALSE)
 train_sub <- train[row_idx,]
 
 
-set.seed(1004)
-
-row_idx <- sample(1:dim(train_with_assess)[1], size = 1000, replace = FALSE)
-
-train_sub <- train[row_idx,]
 
 # make new column, with TRUE if "correct":true, FALSE if "correct":false, NA otherwise
 
@@ -114,32 +87,32 @@ train$activity_minutes <- lubridate::minute(train$timestamp)
 
 
 
-### Prediction used the median of accuracy group value for each type of assessment kappa of 0.396 ###
+# ### Prediction used the median of accuracy group value for each type of assessment kappa of 0.396 ###
+# 
+# # arrange test data to select the last assessment attempted
+# last_assessment <- test %>% 
+#   filter(type == "Assessment") %>% 
+#   arrange(installation_id, desc(timestamp)) %>% 
+#   distinct(installation_id, .keep_all = T) %>% 
+#   select(installation_id, title)
+# 
+# 
+# # create prediction based off median scores
+# pred_table <- train_labels %>% 
+#   group_by(title) %>% 
+#   summarise(accuracy_group = median(accuracy_group, na.rm = T)) %>% ungroup()
+# 
+# # create the submission dataframe
+# submission <- last_assessment %>% 
+#   left_join(pred_table, by = "title") %>% 
+#   select(-title)
+# 
+# # write the submission file
+# write.csv(submission, "submission.csv", row.names = F)
 
-# arrange test data to select the last assessment attempted
-last_assessment <- test %>% 
-  filter(type == "Assessment") %>% 
-  arrange(installation_id, desc(timestamp)) %>% 
-  distinct(installation_id, .keep_all = T) %>% 
-  select(installation_id, title)
 
 
-# create prediction based off median scores
-pred_table <- train_labels %>% 
-  group_by(title) %>% 
-  summarise(accuracy_group = median(accuracy_group, na.rm = T)) %>% ungroup()
-
-# create the submission dataframe
-submission <- last_assessment %>% 
-  left_join(pred_table, by = "title") %>% 
-  select(-title)
-
-# write the submission file
-write.csv(submission, "submission.csv", row.names = F)
-
-
-
-### correlations with some of the featrues and accuracy group ###
+### correlations with some of the features and accuracy group ###
 
 # create summary statistic features using pivot_wider()
 summary_stats_pivot <- train %>% 
