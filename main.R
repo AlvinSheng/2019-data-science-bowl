@@ -14,6 +14,7 @@ library(scales)
 library(lubridate)
 library(conflicted)
 library(MASS)
+library(RVAideMemoire)
 conflict_prefer("filter", winner = "dplyr", losers = "stats")
 
 # This sets the working directory to that of this file main.R 
@@ -85,6 +86,11 @@ train$activity_hour <- lubridate::hour(train$timestamp)
 
 train$activity_minutes <- lubridate::minute(train$timestamp)
 
+test$activity_wday <- lubridate::wday(test$timestamp, label = T)
+
+test$activity_hour <- lubridate::hour(test$timestamp)
+
+test$activity_minutes <- lubridate::minute(test$timestamp)
 
 
 # ### Prediction used the median of accuracy group value for each type of assessment kappa of 0.396 ###
@@ -115,7 +121,7 @@ train$activity_minutes <- lubridate::minute(train$timestamp)
 ### correlations with some of the features and accuracy group ###
 
 # create summary statistic features using pivot_wider()
-summary_stats_pivot <- train %>% 
+summary_stats_pivot.train <- train %>% 
   group_by(installation_id, type) %>% 
   summarise(n_events = n(),
             n_sessions = n_distinct(game_session),
@@ -126,7 +132,16 @@ summary_stats_pivot <- train %>%
   pivot_wider(names_from = type, values_from = c(n_events, n_sessions, total_time, med_time_spent, avg_time_spent, sd_time_spent)) %>% 
   dplyr::select(-total_time_Clip, -med_time_spent_Clip, -avg_time_spent_Clip, -sd_time_spent_Clip)
 
-
+summary_stats_pivot.test <- test %>% 
+  group_by(installation_id, type) %>% 
+  summarise(n_events = n(),
+            n_sessions = n_distinct(game_session),
+            total_time = sum(game_time, na.rm = T),
+            med_time_spent = median(game_time, na.rm = T),
+            avg_time_spent = mean(game_time, na.rm = T),
+            sd_time_spent = sd(game_time, na.rm = T)) %>% ungroup() %>% 
+  pivot_wider(names_from = type, values_from = c(n_events, n_sessions, total_time, med_time_spent, avg_time_spent, sd_time_spent)) %>% 
+  dplyr::select(-total_time_Clip, -med_time_spent_Clip, -avg_time_spent_Clip, -sd_time_spent_Clip)
 
 # join the summary statistics to train labels and calculate correlations
 train_labels %>% 
@@ -191,8 +206,11 @@ train_labels.test <-train_labels.new[1:1000,]
 
 train_labels.train<- train_labels.new[1001:length(train_labels.new$installation_id),] 
 
+
+
 lda.fit <- lda(accuracy_group ~ n_events_Clip + n_events_Assessment+n_events_Activity+n_sessions_Game,data=train_labels.train)
 lda.fit
+DA.v
 plot(lda.fit)
 lda.pred <- predict(lda.fit ,train_labels.test )
 names(lda.pred)
