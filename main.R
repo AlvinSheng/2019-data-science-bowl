@@ -43,24 +43,19 @@ sample_submission <- read_csv('data-science-bowl-2019/sample_submission.csv')
 ### Data Wrangling ###
 
 # keep only the installation_id's in train with assessment history
-#forgot to name it as with assess rather than just train
 
-train_with_assess <- train %>% 
+train <- train %>% 
   filter(type == "Assessment") %>% 
   distinct(installation_id) %>%
   left_join(train, by = "installation_id")
 
 
-## convert event_data JSON column to data.table
-train_event_data <- train_with_assess$event_data %>% head(22) %>%
-  lapply(function(x) fromJSON(gsub('""', "\"", x))) %>%
-  rbindlist( fill =TRUE)
 
-# Downsampling train_with_assess 
+# Downsampling train 
 
 set.seed(1004)
 
-row_idx <- sample(1:dim(train_with_assess)[1], size = 1000, replace = FALSE)
+row_idx <- sample(1:dim(train)[1], size = 1000, replace = FALSE)
 
 train_sub <- train[row_idx,]
 
@@ -70,11 +65,11 @@ train_sub <- train[row_idx,]
 
 
 
-event_data <- train_with_assess$event_data
+event_data <- train$event_data
 
 correct <- ifelse(grepl("\"correct\"", event_data), ifelse(grepl("\"correct\":true", event_data), TRUE, FALSE), NA)
 
-train_with_assess$correct <- correct
+train$correct <- correct
 
 # train <- train %>% 
 #   mutate(timestamp = gsub("T", " ", timestamp) %>% gsub("Z", "", .) %>% ymd_hms(),
