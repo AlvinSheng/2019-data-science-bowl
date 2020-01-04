@@ -43,13 +43,18 @@ sample_submission <- read_csv('data-science-bowl-2019/sample_submission.csv')
 ### Data Wrangling ###
 
 # keep only the installation_id's in train with assessment history
+#forgot to name it as with assess rather than just train
 
-train <- train %>% 
+train_with_assess <- train %>% 
   filter(type == "Assessment") %>% 
   distinct(installation_id) %>%
   left_join(train, by = "installation_id")
 
 
+## convert event_data JSON column to data.table
+train_event_data <- train_with_assess$event_data %>% head(22) %>%
+  lapply(function(x) fromJSON(gsub('""', "\"", x))) %>%
+  rbindlist( fill =TRUE)
 
 # Downsampling train_with_assess 
 
@@ -63,13 +68,13 @@ train_sub <- train[row_idx,]
 
 # make new column, with TRUE if "correct":true, FALSE if "correct":false, NA otherwise
 
+
+
 event_data <- train_with_assess$event_data
 
 correct <- ifelse(grepl("\"correct\"", event_data), ifelse(grepl("\"correct\":true", event_data), TRUE, FALSE), NA)
 
 train_with_assess$correct <- correct
-
-
 
 # train <- train %>% 
 #   mutate(timestamp = gsub("T", " ", timestamp) %>% gsub("Z", "", .) %>% ymd_hms(),
@@ -146,7 +151,7 @@ summary_stats_pivot.test <- test %>%
 # join the summary statistics to train labels and calculate correlations
 train_labels %>% 
   dplyr::select(installation_id, accuracy_group) %>% 
-  left_join(summary_stats_pivot, by = "installation_id") %>% 
+  left_join(summary_stats_pivot.train, by = "installation_id") %>% 
   dplyr::select(-installation_id) %>% 
   as.matrix() %>% 
   na.omit() %>% 
@@ -158,8 +163,9 @@ train_labels %>%
 
 
 
-train_labels.new <- left_join(train_labels,summary_stats_pivot, by = "installation_id")
+train_labels.new <- left_join(train_labels,summary_stats_pivot.train, by = "installation_id")
 
+train_labels.new[is.na(train_labels.new)] <- 0
 
 
 ## Preparing test for prediction.
@@ -209,8 +215,12 @@ train_labels.train<- train_labels.new[1001:length(train_labels.new$installation_
 
 
 lda.fit <- lda(accuracy_group ~ n_events_Clip + n_events_Assessment+n_events_Activity+n_sessions_Game,data=train_labels.train)
+
 lda.fit
-DA.v
+
+#trying to cross validation for it, but it is not  working . Alvin Sheng   
+mva.lda <- MVA.cv(X=train_labels.new$n_events_Game, Y= train_labels.new$accuracy_group,  model=c("LDA"))
+
 plot(lda.fit)
 lda.pred <- predict(lda.fit ,train_labels.test )
 names(lda.pred)
