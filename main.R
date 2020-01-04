@@ -219,7 +219,7 @@ lda.fit <- lda(accuracy_group ~ n_events_Clip + n_events_Assessment+n_events_Act
 lda.fit
 
 #trying to cross validation for it, but it is not  working . Alvin Sheng   
-mva.lda <- MVA.cv(X=train_labels.new$n_events_Game, Y= train_labels.new$accuracy_group,  model=c("LDA"))
+mva.lda <- MVA.cv(X=train_labels.new$n_events_Game, Y= as.factor(train_labels.new$accuracy_group),  model=c("LDA"))
 
 plot(lda.fit)
 lda.pred <- predict(lda.fit ,train_labels.test )
