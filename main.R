@@ -112,6 +112,12 @@ train$activity_minutes <- lubridate::minute(train$timestamp)
 
 
 
+# Creating variable to conserve historical sequence in summary_stats_pivot
+
+
+
+
+
 ### correlations with some of the features and accuracy group ###
 
 # create summary statistic features using pivot_wider()
