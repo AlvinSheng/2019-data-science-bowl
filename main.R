@@ -223,4 +223,4 @@ qda.fit <- qda(accuracy_group ~ n_events_Clip + n_events_Assessment+n_events_Act
 qda.fit
 qda.class <- predict(qda.fit ,train_labels.test)$class
 table(qda.class ,train_labels.test$accuracy_group)
-mean(qda.class == Direction.2005)
+mean(qda.class == train_labels.test$accuracy_group)
