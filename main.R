@@ -198,9 +198,39 @@ test_no_labels <- test[pred_assess_idx,]
 
 
 
-# Enhancing train_labels
+# Making variable pre-assessment history indicator
 
-# First step is to align train_labels and test_no_labels
+assess_game_sessions <- train_labels$game_session
+
+# I'm assuming installation_id's are contiguous
+
+install_ids <- unique(train$installation_id)
+
+i <- 1
+
+pre_assess_history <- rep(NA, dim(train)[1])
+
+for (install_id in install_ids) {
+  
+  pre_assess_id <- 1 # 
+  
+  while (train$installation_id[i] == install_id) {
+    
+    pre_assess_history[i] <- pre_assess_id
+    
+    if(train$game_session[i] %in% assess_game_sessions & train$event_count[i] == 1) { # if this is the first event of the assessment 
+      
+      pre_assess_id <- pre_assess_id + 1
+      
+    }
+   
+    i <- i + 1
+     
+  }
+  
+}
+
+train$pre_assess_history <- pre_assess_history
 
 
 
