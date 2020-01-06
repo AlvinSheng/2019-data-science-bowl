@@ -15,6 +15,9 @@ library(lubridate)
 library(conflicted)
 library(MASS)
 library(RVAideMemoire)
+library(randomForest)
+library(caret)
+
 conflict_prefer("filter", winner = "dplyr", losers = "stats")
 
 # This sets the working directory to that of this file main.R 
@@ -236,21 +239,23 @@ train$pre_assess_history <- pre_assess_history
 
 
 
-# LDA
+#splitting training data into test and trian
 
-train_labels.test <-train_labels.new[1:1000,] 
+row_idx.labels <- sample(1:dim(train_labels.new)[1], size = 1000, replace = FALSE)
 
-
-train_labels.train<- train_labels.new[1001:length(train_labels.new$installation_id),] 
-
+train_labels.test <-train_labels.new[row_idx.labels,] 
 
 
+train_labels.train<- train_labels.new[-row_idx.labels ,] 
+
+
+#trying linear discriminant analysis and quadratic discriminant analysis. probably not hte most effiecient way to go, so went with reandom forest. # LDA
 lda.fit <- lda(accuracy_group ~ n_events_Clip + n_events_Assessment+n_events_Activity+n_sessions_Game,data=train_labels.train)
 
 lda.fit
 
-#trying to cross validation for it, but it is not  working . Alvin Sheng   
-mva.lda <- MVA.cv(X=train_labels.new$n_events_Game, Y= as.factor(train_labels.new$accuracy_group),  model=c("LDA"))
+   
+mva.lda <- MVA.cv(X=train_labels.new$accuracy, Y= as.factor(train_labels.new$accuracy_group),  model=c("LDA"))
 
 plot(lda.fit)
 lda.pred <- predict(lda.fit ,train_labels.test )
@@ -265,3 +270,79 @@ qda.fit
 qda.class <- predict(qda.fit ,train_labels.test)$class
 table(qda.class ,train_labels.test$accuracy_group)
 mean(qda.class == train_labels.test$accuracy_group)
+
+
+# attempting random forest techniques on classificaiton. seemingly form the results the new fewatures are not as important as the original predictors of num correct, num in correct and accuracy
+
+set.seed(1)
+
+bag.train.labels <- randomForest(as.factor(accuracy_group)~.-(installation_id+game_session+ title),data=train_labels.train, mtry=23, importance=TRUE)
+
+print(bag.train.labels) 
+
+varImpPlot(bag.train.labels, sort = T, n.var=10,main="Top 10 - Variable Importance")
+
+var.imp <-  data.frame(importance(bag.train.labels,  
+                                type=2))
+
+var.imp$Variables <-  row.names(var.imp)  
+
+print(var.imp[order(var.imp$MeanDecreaseGini,decreasing = T),])
+
+# Predicting response variable
+train_labels.train$predicted.response <-  predict(bag.train.labels , train_labels.train)
+
+# Create Confusion Matrix
+print(  
+  confusionMatrix(data = train_labels.train$predicted.response ,  
+                  reference = as.factor(train_labels.train$accuracy_group)))
+
+# Predicting response variable
+train_labels.test$predicted.response <- predict(bag.train.labels ,train_labels.test)
+
+# Create Confusion Matrix
+print(  
+  confusionMatrix(data=train_labels.test$predicted.response,  
+                  reference=as.factor(train_labels.test$accuracy_group)))
+
+
+#same classification tree, but we did not have the num-correct, num-incorrect, and accuracy of test data. Therefore, i will use the summary features we have above
+
+bag.train.labels.summary <- randomForest(as.factor(accuracy_group)~.-(installation_id+game_session+ title+ accuracy+num_correct+num_incorrect+predicted.response),data=train_labels.train, mtry=20, importance=TRUE)
+
+print(bag.train.labels.summary) 
+
+varImpPlot(bag.train.labels.summary, sort = T, n.var=10,main="Top 10 - Variable Importance")
+
+var.imp <-  data.frame(importance(bag.train.labels.summary,  
+                                  type=2))
+
+var.imp$Variables <-  row.names(var.imp)  
+
+print(var.imp[order(var.imp$MeanDecreaseGini,decreasing = T),])
+
+#modified to only include the first four important varible
+
+bag.train.labels.summary <- randomForest(as.factor(accuracy_group)~med_time_spent_Assessment+med_time_spent_Game+sd_time_spent_Assessment+med_time_spent_Activity,data=train_labels.train, mtry=4, importance=TRUE)
+
+print(bag.train.labels.summary) 
+
+# Predicting response variable
+train_labels.train$predicted.response <-  predict(bag.train.labels.summary , train_labels.train)
+
+# Create Confusion Matrix
+print(  
+  confusionMatrix(data = train_labels.train$predicted.response ,  
+                  reference = as.factor(train_labels.train$accuracy_group)))
+
+# Predicting response variable
+train_labels.test$predicted.response <- predict(bag.train.labels.summary ,train_labels.test)
+
+# Create Confusion Matrix
+print(  
+  confusionMatrix(data=train_labels.test$predicted.response,  
+                  reference=as.factor(train_labels.test$accuracy_group)))
+
+
+
+
