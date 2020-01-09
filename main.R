@@ -217,7 +217,7 @@ for (install_id in install_ids) {
   
   pre_assess_id <- 1 # 
   
-  while (train$installation_id[i] == install_id) {
+  while (isTRUE(train$installation_id[i] == install_id)) {
     
     pre_assess_history[i] <- pre_assess_id
     
